@@ -1,0 +1,11 @@
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Définir la couleur de fond de l'application -->
+        <item name="android:windowBackground">#1C1A5E</item> <!-- rgb(28, 26, 94) -->
+    </style>
+
+    <style name="Button.Color" parent="ThemeOverlay.AppCompat">
+        <!-- Définir la couleur d'accentuation -->
+        <item name="colorAccent">#68B5F0</item>
+    </style>
+</resources>
