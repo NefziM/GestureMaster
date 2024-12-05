@@ -25,6 +25,12 @@ public class CardActivityActivity extends AppCompatActivity {
         });
 
         // Récupérer la CardView de card2 et définir un listener pour l'action de clic
+        CardView card1 = findViewById(R.id.card1);
+        card1.setOnClickListener(v -> {
+            // Redirection vers DriverLis
+            Intent intent = new Intent(CardActivityActivity.this, DriverList.class);
+            startActivity(intent);
+        });
         CardView card2 = findViewById(R.id.card2);
         card2.setOnClickListener(v -> {
             // Créez une intention pour démarrer l'activité ListeGymActivity
@@ -37,5 +43,6 @@ public class CardActivityActivity extends AppCompatActivity {
             Intent intent = new Intent(CardActivityActivity.this, UserList.class);
             startActivity(intent);
         });
+
     }
 }

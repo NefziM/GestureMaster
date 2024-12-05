@@ -45,6 +45,9 @@
             android:name=".Course"
             android:exported="true" />
         <activity
+            android:name=".DriverList"
+            android:exported="true" />
+        <activity
             android:name=".UserList"
             android:exported="true" />
 

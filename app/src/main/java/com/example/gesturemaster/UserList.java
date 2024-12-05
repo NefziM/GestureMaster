@@ -77,13 +77,13 @@ public class UserList extends AppCompatActivity {
         frottementActions = new HashMap<>();
         actions = new ArrayList<>();
         actions = new ArrayList<>();
-        actions.add(new ActionItem("Ouvrir la caméra", 0, R.drawable.camera));
-        actions.add(new ActionItem("Allumer la lampe torche", 0, R.drawable.ic_flashlight));
-        actions.add(new ActionItem("Prendre une capture d'écran", 0, R.drawable.ic_screenshot));
-        actions.add(new ActionItem("Enregistrer un audio", 0, R.drawable.ic_microphone));
-        actions.add(new ActionItem("Ouvrir la boîte email", 0, R.drawable.ic_email));
-        actions.add(new ActionItem("Éteindre l'écran", 0, R.drawable.ic_screen_off));
-        actions.add(new ActionItem("Envoyer un SMS", 0, R.drawable.ic_sms));
+        actions.add(new ActionItem("Open the camera", 0, R.drawable.camera));
+        actions.add(new ActionItem("Turn on the flashlight", 0, R.drawable.ic_flashlight));
+        actions.add(new ActionItem("Take a screenshot", 0, R.drawable.ic_screenshot));
+        actions.add(new ActionItem("Record audio", 0, R.drawable.ic_microphone));
+        actions.add(new ActionItem("Open the email box", 0, R.drawable.ic_email));
+        actions.add(new ActionItem("Turn off the screen", 0, R.drawable.ic_screen_off));
+        actions.add(new ActionItem("Send SMS", 0, R.drawable.ic_sms));
 
         listView = findViewById(R.id.list_actions);
         adapter = new ActionAdapter(this, actions);
