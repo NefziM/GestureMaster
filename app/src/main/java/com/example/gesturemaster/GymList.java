@@ -46,9 +46,8 @@ public class GymList extends AppCompatActivity {
 
         frottementActions = new HashMap<>();
         actions = new ArrayList<>();
-        actions.add(new ActionItem("Turn Off The Screen", 0, R.drawable.ic_screen_off));
-        actions.add(new ActionItem("Play Favorite Music", 0, R.drawable.ic_music));
         actions.add(new ActionItem("Launch An Application", 0, R.drawable.launch));
+        actions.add(new ActionItem("Play Favorite Music", 0, R.drawable.ic_music));
         actions.add(new ActionItem("Squat", 0, R.drawable.squat));
         actions.add(new ActionItem("Yoga", 0, R.drawable.yoga));
         actions.add(new ActionItem("Run", 0, R.drawable.run));
@@ -59,18 +58,22 @@ public class GymList extends AppCompatActivity {
 
         // Gestion des clics sur la liste
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            if (position >= 3) {
+            if (position >= 1) {
                 // Si un des éléments Squat, Yoga ou Course est cliqué, on redirige vers l'activité correspondante
                 switch (position) {
-                    case 3:
+                    case 1:
+                        Intent musicIntent = new Intent(GymList.this, MusicIntoActivity.class);
+                        startActivity(musicIntent);
+                        break;
+                    case 2:
                         Intent squatIntent = new Intent(GymList.this, squat.class);
                         startActivity(squatIntent);
                         break;
-                    case 4:
+                    case 3:
                         Intent yogaIntent = new Intent(GymList.this, yoga.class);
                         startActivity(yogaIntent);
                         break;
-                    case 5:
+                    case 4:
                         Intent courseIntent = new Intent(GymList.this, Course.class);
                         startActivity(courseIntent);
                         break;
