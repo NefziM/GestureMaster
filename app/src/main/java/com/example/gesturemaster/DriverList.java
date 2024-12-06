@@ -1,6 +1,7 @@
 package com.example.gesturemaster;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -33,6 +34,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -60,12 +62,7 @@ public class DriverList extends AppCompatActivity {
     private int frottementCount = 0;
     private Handler handler = new Handler();
     private Runnable frottementRunnable;
-    private static final int SCREENSHOT_REQUEST_CODE = 1000;
-    private MediaProjectionManager mProjectionManager;
-    private MediaProjection mMediaProjection;
-    private VirtualDisplay mVirtualDisplay;
-    private ImageReader mImageReader;
-    private AudioManager audioManager;
+
     private MediaRecorder mediaRecorder;
     private String outputFilePath;
 
@@ -75,7 +72,6 @@ public class DriverList extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         frottementActions = new HashMap<>();
         actions = new ArrayList<>();
 
@@ -90,6 +86,20 @@ public class DriverList extends AppCompatActivity {
         adapter = new ActionAdapter(this, actions);
         listView.setAdapter(adapter);
 
+        // Supprimez l'appel redondant à setOnItemClickListener
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            if (position >= 1) {
+                // Si "Play Favorite Music" est cliqué, on redirige vers MusicIntoActivity
+                if (position == 1) {
+                    Intent musicIntent = new Intent(DriverList.this, MusicIntoActivity.class);
+                    startActivity(musicIntent);
+                }
+            } else {
+                // Sinon, afficher le dialogue pour configurer les frottements
+                showEditDialog(position);
+            }
+        });
+
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         if (sensorManager != null) {
             accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -98,7 +108,6 @@ public class DriverList extends AppCompatActivity {
             }
         }
 
-        listView.setOnItemClickListener((parent, view, position, id) -> showEditDialog(position));
         checkPermissions();
         ImageView backIcon = findViewById(R.id.back_icon);
         backIcon.setOnClickListener(new View.OnClickListener() {
@@ -109,6 +118,7 @@ public class DriverList extends AppCompatActivity {
             }
         });
     }
+
     private void checkPermissions() {
         // Liste des permissions nécessaires
         String[] permissions = {
@@ -125,6 +135,9 @@ public class DriverList extends AppCompatActivity {
                 android.Manifest.permission.ACCESS_WIFI_STATE,
                 android.Manifest.permission.MANAGE_OWN_CALLS,
                 android.Manifest.permission.SYSTEM_ALERT_WINDOW,
+                Manifest.permission.READ_MEDIA_AUDIO,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.READ_MEDIA_IMAGES,
                 android.Manifest.permission.READ_EXTERNAL_STORAGE
         };
 
@@ -201,9 +214,6 @@ public class DriverList extends AppCompatActivity {
             case 0:
                 answerCall();
                 break;
-            case 1:
-                playMusic();
-                break;
             case 2:
                 launchApp();
                 break;
@@ -229,120 +239,71 @@ public class DriverList extends AppCompatActivity {
 
 
 
+
+    private boolean isPermissionRequested = false;
+
     private void openGoogleMaps() {
-        Uri gmmIntentUri = Uri.parse("geo:0,0?q=");
-        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-        mapIntent.setPackage("com.google.android.apps.maps");
-        if (mapIntent.resolveActivity(getPackageManager()) != null) {
-            startActivity(mapIntent);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // URI pour ouvrir Google Maps
+            Uri uri = Uri.parse("geo:0,0?q=1600+Amphitheatre+Parkway,+Mountain+View,+California");
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, uri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+
+            // Vérifiez si l'application Google Maps est disponible
+            if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                startActivity(mapIntent);
+            } else {
+                // Si Google Maps n'est pas installé, redirigez vers un navigateur
+                Toast.makeText(this, "Google Maps n'est pas installé. Ouverture dans le navigateur.", Toast.LENGTH_SHORT).show();
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.tn/maps/place/Institut+Sup%C3%A9rieur+des+Etudes+Technologiques+de+Rades/@36.7603043,10.2673499,17z/data=!3m1!4b1!4m6!3m5!1s0x12fd49fa15643927:0xad64c8c462b52435!8m2!3d36.7603!4d10.2699248!16s%2Fg%2F12156nc0?hl=fr&entry=ttu&g_ep=EgoyMDI0MTIwMy4wIKXMDSoASAFQAw%3D%3D"));
+                startActivity(browserIntent);
+            }
         } else {
-            Toast.makeText(this, "Google Maps non installé", Toast.LENGTH_SHORT).show();
+            // Demande de permission si elle n'est pas accordée
+            isPermissionRequested = true;
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission accordée
+                if (isPermissionRequested) {
+                    // Re-essayer d'ouvrir Google Maps
+                    openGoogleMaps();
+                    isPermissionRequested = false; // Réinitialiser le marqueur
+                }
+            } else {
+                // Permission refusée, afficher un message à l'utilisateur
+                Toast.makeText(this, "La permission de localisation est requise pour utiliser cette fonctionnalité.", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
     //music
-    private void playMusic() {
-        // Vérifie les permissions pour lire le stockage externe
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
-            return;
-        }
-
-        ArrayList<String> musicPaths = new ArrayList<>();
-        ArrayList<String> musicTitles = new ArrayList<>();
-        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-
-        String[] projection = {
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.DATA
-        };
-
-        // Récupère les musiques depuis le stockage externe
-        try (Cursor cursor = getContentResolver().query(uri, projection, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                do {
-                    String title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
-                    String path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
-                    musicTitles.add(title);
-                    musicPaths.add(path);
-                    Log.d("MusicPath", "Path: " + path);  // Déboguer les chemins de fichiers
-                } while (cursor.moveToNext());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (musicTitles.isEmpty()) {
-            Toast.makeText(this, "Aucune musique trouvée", Toast.LENGTH_SHORT).show();
-        } else {
-            // Affiche un dialog pour sélectionner une musique
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Sélectionnez une musique");
-
-            builder.setItems(musicTitles.toArray(new String[0]), (dialog, which) -> {
-                String selectedPath = musicPaths.get(which);
-                Log.d("SelectedMusic", "Selected path: " + selectedPath);  // Vérifiez le chemin sélectionné
-                playSelectedMusic(selectedPath);
-            });
-
-            builder.setNegativeButton("Annuler", (dialog, which) -> dialog.dismiss());
-            builder.show();
-        }
-    }
-
-    private void playSelectedMusic(String path) {
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
-            mediaPlayer.release();
-        }
-
-        try {
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setDataSource(path);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-
-            Toast.makeText(this, "Lecture : " + new File(path).getName(), Toast.LENGTH_SHORT).show();
-
-            // Arrêt automatique de la musique lors de la fin
-            mediaPlayer.setOnCompletionListener(mp -> {
-                mp.release();
-                Toast.makeText(this, "Musique terminée", Toast.LENGTH_SHORT).show();
-            });
-        } catch (IOException e) {
-            Toast.makeText(this, "Erreur lors de la lecture du fichier audio", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        }
-    }
-
-
-
-
-
-
-
-
-    private void openEmail() {
-        Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"));
-        startActivity(Intent.createChooser(emailIntent, "Choisir une application email"));
-    }
-
-
 
 
 
 
     //SMS
     private void sendSMS() {
-        String phoneNumber = "1234567890";
+        String phoneNumber = "53107137";
         String message = "Test de l'application SMS";
 
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-            SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(phoneNumber, null, message, null, null);
-            Toast.makeText(this, "SMS envoyé", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Permission SMS non accordée", Toast.LENGTH_SHORT).show();
+        // Créer un Intent pour ouvrir l'application de messagerie
+        Intent smsIntent = new Intent(Intent.ACTION_VIEW);
+        smsIntent.setData(Uri.parse("sms:" + phoneNumber)); // Numéro de téléphone prérempli
+        smsIntent.putExtra("sms_body", message); // Message prérempli
+
+        try {
+            // Démarrer l'application de messagerie
+            startActivity(smsIntent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "Aucune application de messagerie trouvée", Toast.LENGTH_SHORT).show();
         }
     }
 

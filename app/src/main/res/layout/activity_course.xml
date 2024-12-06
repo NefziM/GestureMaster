@@ -6,23 +6,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/couse"
-    tools:context=".course">
+    tools:context=".Course">
+
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="0"
-        android:textSize="50sp"
+        android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.425"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.697" />
+        app:layout_constraintVertical_bias="0.7" />
+
     <Button
         android:id="@+id/button2"
-        android:layout_width="91dp"
-        android:layout_height="44dp"
+        android:layout_width="55dp"
+        android:layout_height="41dp"
         android:backgroundTint="#CB92C9F4"
 
         android:gravity="center"
@@ -32,4 +34,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.771" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="steps"
+        android:textSize="30sp"
+        tools:layout_editor_absoluteX="198dp"
+        tools:layout_editor_absoluteY="484dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>
